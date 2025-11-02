@@ -22,14 +22,14 @@ Conéctase cun servidor desenvolvido en **Spring Boot** e **Java**, encargado da
 - **Xestión de cultivos**
 - **Xeolocalización de cada plantación**
 - **Planificación automática e manual de tarefas**
-- **Integración con APIs externas: Perenual e Weather API**
+- **Integración con APIs externas: Permapeople e Weather API**
 
 ---
 
 ## Integración coa API **Perenual Plant API**
 
-A aplicación obtén datos xenéricos de especies vexetais desde [Perenual](https://perenual.com/api/),  
-permitindo buscar información sobre coidados, rego, fertilización e pragas.
+A aplicación obtén datos xenéricos de especies vexetais desde [Permapeople](https://permapeople.org/),  
+permitindo buscar información sobre coidados, rego, crecemento ou fertilización.
 
 ---
 
