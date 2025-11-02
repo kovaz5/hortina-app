@@ -3,6 +3,7 @@ package com.alex.hortina.data.remote.api
 import retrofit2.http.GET
 import retrofit2.http.Path
 import com.alex.hortina.data.remote.dto.CultivoDto
+import com.alex.hortina.data.remote.dto.TareaDto
 import retrofit2.http.Query
 
 interface HortinaApiService {
@@ -16,5 +17,12 @@ interface HortinaApiService {
     // para búsquedas (de momento vai a futuro)
     @GET("cultivos/search")
     suspend fun searchCultivos(@Query("q") query: String): List<CultivoDto>
+
+    @GET("tareas")
+    suspend fun getTareas(): List<TareaDto>
+
+    @GET("tareas/cultivo/{id}")
+    suspend fun getTareasPorCultivo(@Path("id") cultivoId: Int): List<TareaDto>
+
 
 }

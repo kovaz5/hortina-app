@@ -45,10 +45,15 @@ android {
 
 dependencies {
 
-    // Implementación de Retrofit e OkHttp
+    // Implementacións varias necesarias para o proxecto
+    // Retrofit, OkHttp, Coil, ViewModel, Navigation...
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.material3)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
