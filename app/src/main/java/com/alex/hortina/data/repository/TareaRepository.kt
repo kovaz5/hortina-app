@@ -15,4 +15,9 @@ class TareaRepository {
     suspend fun getTareasPorCultivo(cultivoId: Int): List<TareaDto> {
         return api.getTareasPorCultivo(cultivoId)
     }
+
+    suspend fun actualizarEstado(id: Int, completada: Boolean): TareaDto {
+        return api.actualizarEstadoTarea(id, completada)
+    }
+
 }

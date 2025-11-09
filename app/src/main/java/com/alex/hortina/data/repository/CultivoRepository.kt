@@ -2,6 +2,7 @@ package com.alex.hortina.data.repository
 
 import com.alex.hortina.data.remote.api.HortinaApiService
 import com.alex.hortina.data.remote.api.RetrofitClient
+import com.alex.hortina.data.remote.dto.CultivoDetalleDto
 import com.alex.hortina.data.remote.dto.CultivoDto
 
 class CultivoRepository {
@@ -12,7 +13,26 @@ class CultivoRepository {
         return api.getCultivos()
     }
 
-    suspend fun getCultivoDetalle(id: Int): CultivoDto {
-        return api.getCultivoDetalle(id)
+    suspend fun getCultivoById(id: Int): CultivoDto {
+        return api.getCultivoById(id)
     }
+
+    suspend fun getCultivoDetalle(id: Int): CultivoDetalleDto {
+        val result = api.getCultivoDetalle(id)
+        return result
+    }
+
+    suspend fun createCultivo(cultivo: CultivoDto): CultivoDto {
+        return api.createCultivo(cultivo)
+    }
+
+    suspend fun updateCultivo(id: Int, dto: CultivoDto): CultivoDto {
+        return api.updateCultivo(id, dto)
+    }
+
+    suspend fun deleteCultivo(id: Int) {
+        api.deleteCultivo(id)
+    }
+
+
 }

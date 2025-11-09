@@ -164,7 +164,7 @@ fun DashboardUpcomingTasksList(tareas: List<com.alex.hortina.data.remote.dto.Tar
                     supportingContent = {
                         Text(
                             text = "Fecha sugerida: ${
-                                tarea.fecha_sugerida ?: "Sin fecha"
+                                tarea.fechaSugerida ?: "Sin fecha"
                             }"
                         )
                     },

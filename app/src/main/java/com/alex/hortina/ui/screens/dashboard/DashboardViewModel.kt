@@ -47,7 +47,7 @@ class DashboardViewModel(
                 val pendientes = tareas.count { it.completada == false || it.completada == null }
                 val completadas = tareas.count { it.completada == true }
                 val tareasProximas =
-                    tareas.filter { it.completada == false }.sortedBy { it.fecha_sugerida }.take(3)
+                    tareas.filter { it.completada == false }.sortedBy { it.fechaSugerida }.take(3)
                 val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
 
                 _uiState.value = DashboardUiState.Success(
@@ -64,4 +64,13 @@ class DashboardViewModel(
     }
 
     fun refresh() = loadDashboardData()
+
+    fun actualizarTareasLocalmente(completadas: Int, pendientes: Int) {
+        val current = _uiState.value
+        if (current is DashboardUiState.Success) {
+            _uiState.value = current.copy(
+                tareasCompletadas = completadas, tareasPendientes = pendientes
+            )
+        }
+    }
 }

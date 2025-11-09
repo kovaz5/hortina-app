@@ -1,14 +1,15 @@
 package com.alex.hortina.data.remote.dto
 
 data class CultivoDto(
-    val id_cultivo: Int?,
-    val id_usuario: Int?,
-    val plantExternalId: Int?,
-    val id_ubicacion: Int?,
-    val nombre: String?,
-    val tipo: String?,
-    val fecha_plantacion: String?,
-    val estado: String?,
-    val imagen: String?,
-    val fecha_estimada_cosecha: String?
+    val idCultivo: Int? = null,
+    val id_usuario: Int? = null,
+    val plantExternalId: Int? = null,
+    val id_ubicacion: Int? = null,
+    val nombre: String? = null,
+    val tipo: String? = null,
+    val fecha_plantacion: String? = null,
+    val estado: String? = null,
+    val imagen: String? = null,
+    val fecha_estimada_cosecha: String? = null
 )
+
