@@ -7,11 +7,15 @@ import com.alex.hortina.data.repository.TareaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.YearMonth
 
 sealed class TareaUiState {
     object Loading : TareaUiState()
     data class Success(
-        val pendientes: List<TareaDto>, val completadas: List<TareaDto>
+        val tareasPorDia: Map<LocalDate, List<TareaDto>>,
+        val fechaSeleccionada: LocalDate,
+        val mesActual: YearMonth = YearMonth.now()
     ) : TareaUiState()
 
     data class Error(val message: String) : TareaUiState()
@@ -30,52 +34,37 @@ class TareaViewModel(
 
     fun loadTareas() {
         _uiState.value = TareaUiState.Loading
+
         viewModelScope.launch {
             try {
                 val tareas = repository.getTareas()
-                println("🧾 Tareas cargadas: ${tareas.map { it.nombre_tarea to it.fechaSugerida }}")
-                val pendientes = tareas.filter { it.completada == false }
-                val completadas = tareas.filter { it.completada == true }
-                _uiState.value = TareaUiState.Success(pendientes, completadas)
-            } catch (t: Throwable) {
-                _uiState.value =
-                    TareaUiState.Error(t.message ?: "Error desconocido al cargar tareas")
-            }
-        }
-    }
 
-    fun refresh() = loadTareas()
-
-    fun cambiarEstado(
-        id: Int, nuevoEstado: Boolean, onContadoresActualizados: ((Int, Int) -> Unit)? = null
-    ) {
-        viewModelScope.launch {
-            val currentState = _uiState.value
-            if (currentState is TareaUiState.Success) {
-                val pendientes = currentState.pendientes.toMutableList()
-                val completadas = currentState.completadas.toMutableList()
-                val tarea = (pendientes + completadas).find { it.id_tarea == id }
-                if (tarea != null) {
-                    val tareaActualizada = tarea.copy(completada = nuevoEstado)
-                    pendientes.removeIf { it.id_tarea == id }
-                    completadas.removeIf { it.id_tarea == id }
-                    if (nuevoEstado) completadas.add(0, tareaActualizada)
-                    else pendientes.add(0, tareaActualizada)
-                    _uiState.value = TareaUiState.Success(pendientes, completadas)
-                    onContadoresActualizados?.invoke(completadas.size, pendientes.size)
-                    try {
-                        repository.actualizarEstado(id, nuevoEstado)
-                    } catch (t: Throwable) {
-                        _uiState.value = currentState
-                        onContadoresActualizados?.invoke(
-                            currentState.completadas.size,
-                            currentState.pendientes.size
-                        )
-                    }
+                val tareasConFecha = tareas.mapNotNull { tarea ->
+                    val fecha = tarea.fechaSugerida?.let { LocalDate.parse(it) }
+                    if (fecha != null) fecha to tarea else null
                 }
+
+                val tareasPorDia = tareasConFecha.groupBy(
+                    keySelector = { it.first },
+                    valueTransform = { it.second })
+
+                val hoy = LocalDate.now()
+
+                _uiState.value = TareaUiState.Success(
+                    tareasPorDia = tareasPorDia, fechaSeleccionada = hoy
+                )
+
+            } catch (e: Exception) {
+                _uiState.value = TareaUiState.Error(e.message ?: "Error al cargar tareas")
             }
         }
     }
 
-
+    fun seleccionarDia(dia: LocalDate) {
+        val state = _uiState.value
+        if (state is TareaUiState.Success) {
+            _uiState.value = state.copy(fechaSeleccionada = dia)
+        }
+    }
 }
+

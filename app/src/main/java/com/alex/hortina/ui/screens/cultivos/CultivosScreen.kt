@@ -13,12 +13,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+import com.alex.hortina.R
 import com.alex.hortina.data.remote.dto.CultivoDto
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,15 +32,16 @@ fun CultivosScreen(navController: NavHostController) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(topBar = {
-        TopAppBar(title = { Text("Mis cultivos") }, actions = {
-            IconButton(onClick = { viewModel.refresh() }) {
-                Icon(Icons.Default.Refresh, contentDescription = "Actualizar")
-            }
-        })
-    }, floatingActionButton = {
-        FloatingActionButton(onClick = { navController.navigate("cultivo_form") }) {
-            Icon(Icons.Default.Add, contentDescription = "Nuevo cultivo")
-        }
+        TopAppBar(
+            title = { Text(stringResource(R.string.your_crops)) },
+            windowInsets = WindowInsets(0, 0, 0, 0),
+            actions = {
+                IconButton(onClick = { viewModel.refresh() }) {
+                    Icon(
+                        Icons.Default.Refresh, contentDescription = stringResource(R.string.update)
+                    )
+                }
+            })
     }) { padding ->
         Box(
             modifier = Modifier
@@ -49,7 +55,7 @@ fun CultivosScreen(navController: NavHostController) {
                     color = MaterialTheme.colorScheme.error
                 )
 
-                is CultivoUiState.Empty -> Text("No tienes cultivos registrados todavía")
+                is CultivoUiState.Empty -> Text(stringResource(R.string.no_crops))
                 is CultivoUiState.Success -> {
                     val cultivos = (uiState as CultivoUiState.Success).cultivos
                     CultivosList(cultivos, navController, viewModel)
@@ -98,8 +104,7 @@ fun CultivoCard(
                     cultivo.idCultivo?.let {
                         navController.navigate("cultivo_detalle/$it")
                     }
-                },
-            elevation = CardDefaults.cardElevation(4.dp)
+                }, elevation = CardDefaults.cardElevation(4.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -121,18 +126,32 @@ fun CultivoCard(
 
                     Column {
                         Text(
-                            text = cultivo.nombre ?: "Cultivo sin nombre",
+                            text = cultivo.nombre ?: stringResource(R.string.unnamed_crop),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                         )
-                        Text(text = "Tipo: ${cultivo.tipo ?: "Desconocido"}")
-                        Text(text = "Estado: ${cultivo.estado ?: "-"}")
-                        cultivo.fecha_estimada_cosecha?.let {
-                            Text(text = "Cosecha estimada: $it")
+                        Text(
+                            text = stringResource(R.string.scientific_name) + ": ${
+                                cultivo.tipo ?: stringResource(
+                                    R.string.unknown
+                                )
+                            }"
+                        )
+                        Text(text = stringResource(R.string.planted_as) + ": ${cultivo.estado ?: "-"}")
+                        cultivo.fecha_plantacion?.let {
+
+                            Text(
+                                text = stringResource(R.string.planting_date) + ": ${
+                                    LocalDate.parse(it).format(
+                                        DateTimeFormatter.ofPattern(
+                                            "dd/MM/yyyy", Locale.getDefault()
+                                        )
+                                    )
+                                }"
+                            )
                         }
                     }
                 }
 
-                // 🔹 Botones debajo del contenido
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.align(Alignment.End)
@@ -142,7 +161,7 @@ fun CultivoCard(
                             navController.navigate("cultivo_editar/$id")
                         }
                     }) {
-                        Text("Editar")
+                        Text(stringResource(R.string.edit))
                     }
 
                     TextButton(onClick = {
@@ -150,7 +169,9 @@ fun CultivoCard(
                             viewModel.deleteCultivo(id)
                         }
                     }) {
-                        Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                        Text(
+                            stringResource(R.string.delete), color = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
             }

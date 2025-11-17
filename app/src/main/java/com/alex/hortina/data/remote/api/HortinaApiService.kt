@@ -8,6 +8,7 @@ import com.alex.hortina.data.remote.dto.LoginRequest
 import com.alex.hortina.data.remote.dto.PlantProfileDto
 import com.alex.hortina.data.remote.dto.RegistroRequest
 import com.alex.hortina.data.remote.dto.TareaDto
+import com.alex.hortina.data.remote.dto.TokenResponse
 import com.alex.hortina.data.remote.dto.UsuarioDto
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -52,11 +53,14 @@ interface HortinaApiService {
         @Path("id") id: Int, @Query("completada") completada: Boolean
     ): TareaDto
 
+    @POST("api/auth/login")
+    suspend fun login(@Body req: LoginRequest): TokenResponse
+
+    @POST("api/auth/refresh")
+    suspend fun refreshToken(@Body refreshToken: String): TokenResponse
+
     @POST("api/usuarios/registro")
     suspend fun registerUser(@Body req: RegistroRequest): UsuarioDto
-
-    @POST("api/usuarios/login")
-    suspend fun login(@Body request: LoginRequest): UsuarioDto
 
     @POST("api/cultivos")
     suspend fun createCultivo(@Body dto: CultivoDto): CultivoDto

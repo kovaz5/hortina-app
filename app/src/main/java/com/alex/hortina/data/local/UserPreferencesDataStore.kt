@@ -1,6 +1,7 @@
 package com.alex.hortina.data.local
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -16,6 +17,33 @@ class UserPreferencesDataStore(private val context: Context) {
         private val USER_ID = stringPreferencesKey("user_id")
         private val USER_NAME = stringPreferencesKey("user_name")
         private val USER_EMAIL = stringPreferencesKey("user_email")
+        private val LANGUAGE_KEY = stringPreferencesKey("language")
+        private val ACCESS_TOKEN = stringPreferencesKey("access_token")
+        private val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
+        private val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
+
+    }
+
+    suspend fun saveTokens(access: String, refresh: String) {
+        context.dataStore.edit { prefs ->
+            prefs[ACCESS_TOKEN] = access
+            prefs[REFRESH_TOKEN] = refresh
+        }
+    }
+
+    suspend fun getAccessToken(): String? {
+        return context.dataStore.data.first()[ACCESS_TOKEN]
+    }
+
+    suspend fun getRefreshToken(): String? {
+        return context.dataStore.data.first()[REFRESH_TOKEN]
+    }
+
+    suspend fun clearTokens() {
+        context.dataStore.edit { prefs ->
+            prefs.remove(ACCESS_TOKEN)
+            prefs.remove(REFRESH_TOKEN)
+        }
     }
 
     suspend fun saveUser(id: String, name: String, email: String) {
@@ -39,24 +67,28 @@ class UserPreferencesDataStore(private val context: Context) {
         context.dataStore.edit { it.clear() }
     }
 
-    private val SESSION_COOKIE = stringPreferencesKey("session_cookie")
-
-    suspend fun saveSessionCookie(cookie: String) {
+    suspend fun saveLanguage(language: String) {
         context.dataStore.edit { prefs ->
-            prefs[SESSION_COOKIE] = cookie
+            prefs[LANGUAGE_KEY] = language
         }
     }
 
-    suspend fun getSessionCookie(): String? {
+    suspend fun getLanguage(): String? {
         val prefs = context.dataStore.data.first()
-        return prefs[SESSION_COOKIE]
+        return prefs[LANGUAGE_KEY]
     }
 
-    suspend fun clearSession() {
+    val notificationsEnabledFlow: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[NOTIFICATIONS_ENABLED] != false
+    }
+
+
+    suspend fun setNotificationsEnabled(enabled: Boolean) {
         context.dataStore.edit { prefs ->
-            prefs.remove(SESSION_COOKIE)
+            prefs[NOTIFICATIONS_ENABLED] = enabled
         }
     }
+
 
 }
 

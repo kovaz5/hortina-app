@@ -2,10 +2,12 @@ package com.alex.hortina.ui.screens.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alex.hortina.data.local.UserPreferencesDataStore
 import com.alex.hortina.data.remote.dto.CultivoDto
 import com.alex.hortina.data.remote.dto.TareaDto
 import com.alex.hortina.data.repository.CultivoRepository
 import com.alex.hortina.data.repository.TareaRepository
+import com.alex.hortina.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -16,6 +18,7 @@ import java.util.Locale
 sealed class DashboardUiState {
     object Loading : DashboardUiState()
     data class Success(
+        val userName: String,
         val cultivos: List<CultivoDto> = emptyList(),
         val tareasPendientes: Int,
         val tareasCompletadas: Int,
@@ -26,9 +29,11 @@ sealed class DashboardUiState {
     data class Error(val message: String) : DashboardUiState()
 }
 
-// máis adiante añadir o resto de repositorios
 class DashboardViewModel(
-    private val cultivoRepository: CultivoRepository, private val tareaRepository: TareaRepository
+    private val cultivoRepository: CultivoRepository,
+    private val tareaRepository: TareaRepository,
+    private val userRepository: UserRepository,
+    private val dataStore: UserPreferencesDataStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<DashboardUiState>(DashboardUiState.Loading)
@@ -42,15 +47,19 @@ class DashboardViewModel(
         _uiState.value = DashboardUiState.Loading
         viewModelScope.launch {
             try {
-                val cultivos = cultivoRepository.getCultivos()
-                val tareas = tareaRepository.getTareas()
-                val pendientes = tareas.count { it.completada == false || it.completada == null }
+                val lang = dataStore.getLanguage()?.uppercase() ?: "ES"
+                val usuario = userRepository.getProfile()
+                val cultivos = cultivoRepository.getCultivos(lang)
+                val tareas = tareaRepository.getTareas(lang)
+                val pendientes = tareas.count { it.completada != true }
                 val completadas = tareas.count { it.completada == true }
                 val tareasProximas =
                     tareas.filter { it.completada == false }.sortedBy { it.fechaSugerida }.take(3)
+
                 val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
 
                 _uiState.value = DashboardUiState.Success(
+                    userName = usuario.nombre.toString(),
                     cultivos = cultivos,
                     tareasPendientes = pendientes,
                     tareasCompletadas = completadas,
@@ -64,13 +73,4 @@ class DashboardViewModel(
     }
 
     fun refresh() = loadDashboardData()
-
-    fun actualizarTareasLocalmente(completadas: Int, pendientes: Int) {
-        val current = _uiState.value
-        if (current is DashboardUiState.Success) {
-            _uiState.value = current.copy(
-                tareasCompletadas = completadas, tareasPendientes = pendientes
-            )
-        }
-    }
 }

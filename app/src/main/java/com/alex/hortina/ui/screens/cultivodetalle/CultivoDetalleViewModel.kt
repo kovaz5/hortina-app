@@ -22,15 +22,15 @@ class CultivoDetalleViewModel(
     val uiState: StateFlow<CultivoDetalleUiState> = _uiState
 
     fun load(cultivoId: Int) {
-        println("🔍 Cargando detalle del cultivo con id=$cultivoId")
+        println("Cargando detalle del cultivo con id=$cultivoId")
         _uiState.value = CultivoDetalleUiState.Loading
         viewModelScope.launch {
             try {
                 val detalle = repo.getCultivoDetalle(cultivoId)
-                println("✅ Cultivo cargado: ${detalle.cultivo.nombre}, tareas: ${detalle.tareas.size}")
+                println("Cultivo cargado: ${detalle.cultivo.nombre}, tareas: ${detalle.tareas.size}")
                 _uiState.value = CultivoDetalleUiState.Success(detalle)
             } catch (t: Throwable) {
-                println("❌ Error al cargar detalle: ${t.message}")
+                println("Error al cargar detalle: ${t.message}")
                 _uiState.value = CultivoDetalleUiState.Error(t.message ?: "Error al cargar detalle")
             }
         }

@@ -1,20 +1,29 @@
 package com.alex.hortina.ui.navigation
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.alex.hortina.R
+import com.alex.hortina.data.local.UserPreferencesDataStore
 import com.alex.hortina.ui.screens.cultivodetalle.CultivoDetalleScreen
 import com.alex.hortina.ui.screens.cultivos.CultivoFormScreen
 import com.alex.hortina.ui.screens.cultivos.CultivosScreen
 import com.alex.hortina.ui.screens.dashboard.DashboardScreen
 import com.alex.hortina.ui.screens.login.LoginScreen
+import com.alex.hortina.ui.screens.perfil.PerfilScreen
+import com.alex.hortina.ui.screens.perfil.PerfilViewModel
 import com.alex.hortina.ui.screens.registro.RegistroScreen
 import com.alex.hortina.ui.screens.splash.SplashScreen
 import com.alex.hortina.ui.screens.tareas.TareasScreen
@@ -23,14 +32,13 @@ import com.alex.hortina.ui.screens.tareas.TareasScreen
 @Composable
 fun HortinaNavGraph(navController: NavHostController, startDestination: String = "login") {
 
-    Scaffold(
-        bottomBar = {
-            val route = currentRoute(navController)
-            if (route != null && route !in listOf("login", "registro")) {
-                BottomNavigationBar(navController)
-            }
+    Scaffold(bottomBar = {
+        val route = currentRoute(navController)
+        if (route != null && route !in listOf("login", "registro")) {
+            BottomBar(navController)
+        }
 
-        }) { paddingValues ->
+    }) { paddingValues ->
         NavHost(
             navController = navController,
             startDestination = startDestination,
@@ -49,7 +57,7 @@ fun HortinaNavGraph(navController: NavHostController, startDestination: String =
             }
 
             composable("dashboard") {
-                DashboardScreen()
+                DashboardScreen(navController)
             }
 
             composable("cultivos") {
@@ -77,24 +85,23 @@ fun HortinaNavGraph(navController: NavHostController, startDestination: String =
             }
 
             composable("tareas") {
-                TareasScreen()
+                TareasScreen(navController)
             }
 
             composable("perfil") {
-                Scaffold(
-                    topBar = { CenterAlignedTopAppBar(title = { Text("Perfil") }) }) { innerPadding ->
-                    Text(
-                        text = "Datos del usuario y configuración (pendiente)",
-                        modifier = androidx.compose.ui.Modifier.padding(innerPadding)
-                    )
-                }
+                PerfilScreen(
+                    onLogout = {
+                        navController.navigate("login") {
+                            popUpTo("dashboard") { inclusive = true }
+                        }
+                    })
             }
         }
     }
 }
 
 @Composable
-private fun currentRoute(navController: NavHostController): String? {
+internal fun currentRoute(navController: NavHostController): String? {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     return navBackStackEntry?.destination?.route
 }

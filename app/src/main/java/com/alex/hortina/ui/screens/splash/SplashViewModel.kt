@@ -12,7 +12,7 @@ class SplashViewModel(
     private val dataStore: UserPreferencesDataStore
 ) : ViewModel() {
 
-    private val authRepository = AuthRepository()
+    private val authRepository = AuthRepository(dataStore)
 
     private val _isSessionValid = MutableStateFlow<Boolean?>(null)
     val isSessionValid: StateFlow<Boolean?> = _isSessionValid
@@ -20,8 +20,9 @@ class SplashViewModel(
     fun checkLogin() {
         viewModelScope.launch {
             val valid = authRepository.checkSession()
-            if (!valid) dataStore.clearSession()
+            if (!valid) dataStore.clearUser()
             _isSessionValid.value = valid
         }
     }
 }
+

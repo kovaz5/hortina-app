@@ -8,18 +8,30 @@ import com.alex.hortina.data.remote.dto.CultivoDto
 class CultivoRepository {
 
     private val api = RetrofitClient.instance.create(HortinaApiService::class.java)
+    private val translator = TranslationRepository()
 
-    suspend fun getCultivos(): List<CultivoDto> {
-        return api.getCultivos()
+    suspend fun getCultivos(uiLang: String = "ES"): List<CultivoDto> {
+        val list = api.getCultivos()
+
+        return list.map { cultivo ->
+            cultivo.copy(
+                nombre = translator.translateAuto(cultivo.nombre ?: "", uiLang),
+                tipo = translator.translateAuto(cultivo.tipo ?: "", uiLang)
+            )
+        }
     }
 
-    suspend fun getCultivoById(id: Int): CultivoDto {
-        return api.getCultivoById(id)
+    suspend fun getCultivoById(id: Int, uiLang: String = "ES"): CultivoDto {
+        val c = api.getCultivoById(id)
+
+        return c.copy(
+            nombre = translator.translateAuto(c.nombre ?: "", uiLang),
+            tipo = translator.translateAuto(c.tipo ?: "", uiLang)
+        )
     }
 
     suspend fun getCultivoDetalle(id: Int): CultivoDetalleDto {
-        val result = api.getCultivoDetalle(id)
-        return result
+        return api.getCultivoDetalle(id)
     }
 
     suspend fun createCultivo(cultivo: CultivoDto): CultivoDto {
@@ -33,6 +45,4 @@ class CultivoRepository {
     suspend fun deleteCultivo(id: Int) {
         api.deleteCultivo(id)
     }
-
-
 }

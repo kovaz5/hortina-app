@@ -3,13 +3,11 @@ package com.alex.hortina.ui.screens.cultivos
 import com.alex.hortina.data.remote.dto.PlantProfileDto
 
 data class CultivoFormState(
-    val nombre: String = "",
-    val tipo: String = "",
-    val fechaPlantacion: String = "",
-    val estado: String = "activo",
-    val imagen: String? = null,
     val selectedPlant: PlantProfileDto? = null,
+    val estado: String = "semilla",
+    val fechaPlantacion: String = java.time.LocalDate.now().toString(),
     val error: String? = null
 ) {
-    fun isValid(): Boolean = nombre.isNotBlank() && tipo.isNotBlank()
+    fun isValid(): Boolean = selectedPlant != null && estado.isNotBlank()
 }
+

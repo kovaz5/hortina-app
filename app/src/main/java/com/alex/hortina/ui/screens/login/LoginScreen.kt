@@ -5,10 +5,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.alex.hortina.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -18,7 +20,12 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
-        topBar = { CenterAlignedTopAppBar(title = { Text("Iniciar sesión") }) }) { padding ->
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(stringResource(R.string.login)) },
+                windowInsets = WindowInsets(0, 0, 0, 0)
+            )
+        }) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -30,7 +37,7 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
+                label = { Text(stringResource(R.string.mail)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -39,7 +46,7 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Contraseña") },
+                label = { Text(stringResource(R.string.password)) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -60,7 +67,7 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
                     }
                 }, modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Entrar")
+                Text(stringResource(R.string.enter))
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -77,7 +84,7 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
             Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(onClick = { navController.navigate("registro") }) {
-                Text("¿No tienes cuenta? Regístrate")
+                Text(stringResource(R.string.no_account))
             }
         }
     }

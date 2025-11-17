@@ -5,9 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.alex.hortina.data.remote.dto.CultivoDto
 import com.alex.hortina.data.repository.CultivoRepository
 import com.alex.hortina.data.repository.PlantasRepository
+import com.alex.hortina.data.repository.TranslationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 sealed class CultivoUiState {
     object Loading : CultivoUiState()
@@ -54,21 +56,19 @@ class CultivoViewModel(
                 val cultivo = repository.getCultivoById(id)
                 var selectedPlant: com.alex.hortina.data.remote.dto.PlantProfileDto? = null
 
-                cultivo.plantExternalId?.let { externalId ->
-                    try {
-                        selectedPlant = plantasRepository.getPlantById(externalId)
-                    } catch (e: Exception) {
-                        println("No se pudo cargar el perfil de planta para ID $externalId: ${e.message}")
+                try {
+                    cultivo.plantExternalId?.let { externalId ->
+                        selectedPlant = com.alex.hortina.data.repository.PlantasRepository()
+                            .getPlantById(externalId)
                     }
+                } catch (e: Exception) {
+                    println("No se pudo cargar el perfil de planta para ID ${cultivo.plantExternalId}: ${e.message}")
                 }
 
                 _formState.value = CultivoFormState(
-                    nombre = cultivo.nombre ?: "",
-                    tipo = cultivo.tipo ?: "",
-                    fechaPlantacion = cultivo.fecha_plantacion ?: "",
-                    estado = cultivo.estado ?: "",
-                    imagen = cultivo.imagen ?: "",
-                    selectedPlant = selectedPlant
+                    selectedPlant = selectedPlant,
+                    estado = cultivo.estado ?: "semilla",
+                    fechaPlantacion = cultivo.fecha_plantacion ?: LocalDate.now().toString()
                 )
             } catch (e: Exception) {
                 _formState.value =
@@ -80,18 +80,23 @@ class CultivoViewModel(
 
     fun updateCultivo(id: Int) {
         val form = _formState.value
+        if (form.selectedPlant == null) {
+            _formState.value = form.copy(error = "Selecciona una planta antes de actualizar")
+            return
+        }
+
         viewModelScope.launch {
             try {
-                val dto = CultivoDto(
+                val dto = com.alex.hortina.data.remote.dto.CultivoDto(
                     idCultivo = id,
                     id_usuario = null,
-                    plantExternalId = form.selectedPlant?.externalId,
+                    plantExternalId = form.selectedPlant.externalId,
                     id_ubicacion = null,
-                    nombre = form.nombre.ifBlank { form.selectedPlant?.commonName },
-                    tipo = form.tipo.ifBlank { form.selectedPlant?.scientificName },
+                    nombre = form.selectedPlant.commonName,
+                    tipo = form.selectedPlant.scientificName,
                     fecha_plantacion = form.fechaPlantacion.ifBlank { null },
                     estado = form.estado,
-                    imagen = form.imagen ?: form.selectedPlant?.imageUrl,
+                    imagen = form.selectedPlant.imageUrl,
                     fecha_estimada_cosecha = null
                 )
                 repository.updateCultivo(id, dto)
@@ -111,23 +116,23 @@ class CultivoViewModel(
     fun createCultivo() {
         val form = _formState.value
         if (!form.isValid()) {
-            _formState.value = form.copy(error = "Por favor completa los campos obligatorios")
+            _formState.value = form.copy(error = "Selecciona una planta y un estado")
             return
         }
 
         viewModelScope.launch {
             try {
-                val cultivo = repository.createCultivo(
+                repository.createCultivo(
                     CultivoDto(
                         idCultivo = null,
                         id_usuario = null,
-                        plantExternalId = form.selectedPlant?.externalId,
+                        plantExternalId = form.selectedPlant!!.externalId,
                         id_ubicacion = null,
-                        nombre = form.nombre.ifBlank { form.selectedPlant?.commonName },
-                        tipo = form.tipo.ifBlank { form.selectedPlant?.scientificName },
-                        fecha_plantacion = form.fechaPlantacion.ifBlank { null },
+                        nombre = form.selectedPlant.commonName,
+                        tipo = form.selectedPlant.scientificName,
+                        fecha_plantacion = form.fechaPlantacion,
                         estado = form.estado,
-                        imagen = form.imagen ?: form.selectedPlant?.imageUrl,
+                        imagen = form.selectedPlant.imageUrl,
                         fecha_estimada_cosecha = null
                     )
                 )
@@ -138,6 +143,7 @@ class CultivoViewModel(
             }
         }
     }
+
 
     fun resetCreationFlag() {
         _creationSuccess.value = false

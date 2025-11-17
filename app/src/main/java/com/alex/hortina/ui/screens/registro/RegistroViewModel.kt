@@ -2,9 +2,8 @@ package com.alex.hortina.ui.screens.registro
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alex.hortina.data.remote.api.HortinaApiService
-import com.alex.hortina.data.remote.api.RetrofitClient
 import com.alex.hortina.data.remote.dto.RegistroRequest
+import com.alex.hortina.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -18,7 +17,7 @@ sealed class RegistroUiState {
 
 class RegistroViewModel : ViewModel() {
 
-    private val api = RetrofitClient.instance.create(HortinaApiService::class.java)
+    private val repo = UserRepository()
 
     private val _uiState = MutableStateFlow<RegistroUiState>(RegistroUiState.Idle)
     val uiState: StateFlow<RegistroUiState> = _uiState
@@ -27,12 +26,15 @@ class RegistroViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = RegistroUiState.Loading
             try {
-                api.registerUser(RegistroRequest(nombre, email, password))
+                repo.register(RegistroRequest(nombre, email, password))
                 _uiState.value = RegistroUiState.Success
                 onSuccess()
             } catch (e: Exception) {
-                _uiState.value = RegistroUiState.Error(e.message ?: "Error al registrar usuario")
+                _uiState.value = RegistroUiState.Error(
+                    e.message ?: "Error al registrar usuario"
+                )
             }
         }
     }
 }
+

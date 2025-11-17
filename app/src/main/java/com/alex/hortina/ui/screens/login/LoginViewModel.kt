@@ -31,19 +31,24 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _uiState.value = LoginUiState.Loading
             try {
-                val user: UsuarioDto = api.login(LoginRequest(email, password))
+                val result = api.login(LoginRequest(email, password))
 
-                dataStore.saveUser(
-                    id = user.id_usuario.toString(),
-                    name = user.nombre.toString(),
-                    email = user.email.toString()
-                )
+                dataStore.saveTokens(result.accessToken, result.refreshToken)
 
-                _uiState.value = LoginUiState.Success(user)
+                result.usuario?.let { u ->
+                    dataStore.saveUser(
+                        id = u.id_usuario.toString(),
+                        name = u.nombre.toString(),
+                        email = u.email.toString()
+                    )
+                }
+
+                _uiState.value = LoginUiState.Success(result.usuario!!)
                 onSuccess()
             } catch (e: Exception) {
                 _uiState.value = LoginUiState.Error("Credenciales inválidas o error de conexión")
             }
         }
     }
+
 }

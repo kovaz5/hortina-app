@@ -5,10 +5,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.alex.hortina.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,7 +23,12 @@ fun RegistroScreen(navController: NavHostController) {
     var password by remember { mutableStateOf("") }
 
     Scaffold(
-        topBar = { CenterAlignedTopAppBar(title = { Text("Registro de usuario") }) }) { padding ->
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(stringResource(R.string.user_registration)) },
+                windowInsets = WindowInsets(0, 0, 0, 0)
+            )
+        }) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -33,7 +40,7 @@ fun RegistroScreen(navController: NavHostController) {
             OutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
-                label = { Text("Nombre") },
+                label = { Text(stringResource(R.string.name)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -42,7 +49,7 @@ fun RegistroScreen(navController: NavHostController) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
+                label = { Text(stringResource(R.string.mail)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -51,7 +58,7 @@ fun RegistroScreen(navController: NavHostController) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Contraseña") },
+                label = { Text(stringResource(R.string.password)) },
                 modifier = Modifier.fillMaxWidth(),
                 visualTransformation = PasswordVisualTransformation()
             )
@@ -71,8 +78,8 @@ fun RegistroScreen(navController: NavHostController) {
             ) {
                 Text(
                     when (uiState) {
-                        is RegistroUiState.Loading -> "Registrando..."
-                        else -> "Registrar"
+                        is RegistroUiState.Loading -> stringResource(R.string.signing_up)
+                        else -> stringResource(R.string.sign_up)
                     }
                 )
             }
@@ -86,7 +93,7 @@ fun RegistroScreen(navController: NavHostController) {
                 )
 
                 is RegistroUiState.Success -> Text(
-                    text = "Registro completado. Ahora inicia sesión.",
+                    text = stringResource(R.string.account_created),
                     color = MaterialTheme.colorScheme.primary
                 )
 
@@ -96,7 +103,7 @@ fun RegistroScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(onClick = { navController.navigate("login") }) {
-                Text("¿Ya tienes cuenta? Inicia sesión")
+                Text(stringResource(R.string.already_account))
             }
         }
     }

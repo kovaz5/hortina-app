@@ -4,6 +4,7 @@ import com.alex.hortina.data.remote.api.HortinaApiService
 import com.alex.hortina.data.remote.api.RetrofitClient
 import com.alex.hortina.data.remote.dto.LoginRequest
 import com.alex.hortina.data.remote.dto.RegistroRequest
+import com.alex.hortina.data.remote.dto.TokenResponse
 import com.alex.hortina.data.remote.dto.UsuarioDto
 
 class UserRepository {
@@ -14,8 +15,8 @@ class UserRepository {
         return api.registerUser(usuario)
     }
 
-    suspend fun login(loginRequest: LoginRequest): UsuarioDto {
-        return api.login(loginRequest)
+    suspend fun login(req: LoginRequest): TokenResponse {
+        return api.login(req)
     }
 
     suspend fun getProfile(): UsuarioDto {
