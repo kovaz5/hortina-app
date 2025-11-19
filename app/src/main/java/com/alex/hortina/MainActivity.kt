@@ -20,14 +20,12 @@ import java.util.Locale
 import androidx.work.*
 import java.util.concurrent.TimeUnit
 import com.alex.hortina.notifications.DailyTaskWorker
-import androidx.activity.result.contract.ActivityResultContracts
 
 class MainActivity : ComponentActivity() {
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
         RetrofitClient.init(this)
 
         setContent {

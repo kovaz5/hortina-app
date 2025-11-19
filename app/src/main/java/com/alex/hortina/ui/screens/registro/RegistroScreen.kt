@@ -25,8 +25,7 @@ fun RegistroScreen(navController: NavHostController) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.user_registration)) },
-                windowInsets = WindowInsets(0, 0, 0, 0)
+                title = { Text(stringResource(R.string.user_registration)) }
             )
         }) { padding ->
         Column(

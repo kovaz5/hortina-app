@@ -22,8 +22,7 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.login)) },
-                windowInsets = WindowInsets(0, 0, 0, 0)
+                title = { Text(stringResource(R.string.login)) }
             )
         }) { padding ->
         Column(
