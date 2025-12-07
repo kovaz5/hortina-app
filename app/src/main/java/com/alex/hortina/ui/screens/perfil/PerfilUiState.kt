@@ -6,6 +6,7 @@ data class PerfilUiState(
     val idioma: String = "es",
     val loading: Boolean = true,
     val error: String? = null,
-    val notificacionesEnabled: Boolean = true
+    val notificacionesEnabled: Boolean = true,
+    val darkMode: Boolean = false
 
 )

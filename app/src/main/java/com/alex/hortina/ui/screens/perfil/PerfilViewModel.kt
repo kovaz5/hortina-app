@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.combine
 
 class PerfilViewModel(
     private val dataStore: UserPreferencesDataStore
@@ -24,13 +25,15 @@ class PerfilViewModel(
             val lang = dataStore.getLanguage() ?: "es"
             val user = dataStore.user.first()
             val notificationsEnabled = dataStore.notificationsEnabledFlow.first()
+            val darkMode = dataStore.darkModeFlow.first()
 
             _uiState.value = PerfilUiState(
                 nombre = user?.name ?: "",
                 email = user?.email ?: "",
                 idioma = lang,
                 loading = false,
-                notificacionesEnabled = notificationsEnabled
+                notificacionesEnabled = notificationsEnabled,
+                darkMode = darkMode
             )
         }
 
@@ -39,12 +42,25 @@ class PerfilViewModel(
                 _uiState.value = _uiState.value.copy(notificacionesEnabled = enabled)
             }
         }
+
+        viewModelScope.launch {
+            dataStore.darkModeFlow.collect { enabled ->
+                _uiState.value = _uiState.value.copy(darkMode = enabled)
+            }
+        }
     }
 
     fun cambiarIdioma(lang: String) {
         viewModelScope.launch {
             dataStore.saveLanguage(lang)
             _uiState.value = _uiState.value.copy(idioma = lang)
+            _shouldRecreate.value = true
+        }
+    }
+
+    fun cambiarDarkMode(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStore.setDarkMode(enabled)
             _shouldRecreate.value = true
         }
     }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Hortiña App</string>
-    <string name="welcome_message">Benvido a Hortiña!</string>
+    <string name="welcome_message">Benvido/a a Hortiña!</string>
     <string name="add_crop">Engadir cultivo</string>
     <string name="search_plant">Buscar planta</string>
     <string name="delete">Eliminar</string>
@@ -54,7 +54,7 @@
     <string name="sign_up">Rexistrar</string>
     <string name="account_created">Conta creada. Agora inicia sesión</string>
     <string name="already_account">Xa tes unha conta? Inicia sesion</string>
-    <string name="garden_tasks">Tarefas da horta</string>
+    <string name="garden_tasks">Tarefas da túa horta</string>
     <string name="pendings">Pendentes</string>
     <string name="completeds">Completadas</string>
     <string name="no_completed">Aínda non completaches ningunha tarefa</string>
@@ -77,4 +77,56 @@
     <string name="notis_msg_2">Os teus cultivos necesitan un pouco de cariño para seguir medrando. 💕</string>
     <string name="notis_msg_3">A túa horta está esperando por ti. Revisa aquí as tarefas que tes para o día.</string>
     <string name="notis">Notificacións</string>
+    <string name="invalid_email">Introduce un correo válido</string>
+    <string name="create_crop">Crear cultivo</string>
+    <string name="automatic_task">Tarefa automática</string>
+    <string name="manual_task">Tarefa manual</string>
+    <string name="today">Hoxe</string>
+    <string name="tomorrow">Mañá</string>
+    <string name="yesterday">Onte</string>
+    <string name="you_have_x_crops">Tes %1d cultivos activos</string>
+    <string name="your_garden_in_numbers">A túa horta en cifras</string>
+    <string name="active_crops">Cultivos activos</string>
+    <string name="pending_tasks">Tarefas pendentes</string>
+    <string name="completed_tasks">Tarefas feitas</string>
+    <string name="active_tasks">Tarefas activas</string>
+    <string name="enabled">Activadas</string>
+    <string name="disabled">Desactivadas</string>
+    <string name="should_activate_nots">Debes activar as notificacións en Axustes.</string>
+    <string name="open">Abrir</string>
+    <string name="notis_enabled">Notififacións activadas</string>
+    <string name="notis_disabled">Notificacións desactivadas</string>
+    <string name="logout">Pechar sesión</string>
+    <string name="your_profile">O teu perfil</string>
+    <string name="dark_mode">Modo escuro</string>
+    <string name="enabledDarkMode">Activado</string>
+    <string name="disabledDarkMode">Desactivado</string>
+    <string name="edible_parts">Partes comestibles</string>
+    <string name="height_label">Altura máxima</string>
+    <string name="change">Cambiar</string>
+    <string name="new_task">Nova tarefa</string>
+    <string name="task_details">Detalles da tarefa</string>
+    <string name="task_name">Nome da tarefa</string>
+    <string name="description_opt">Descrición (opcional)</string>
+    <string name="repeated">Queres que sexa recorrente?</string>
+    <string name="frecuency">Cada cantos días?</string>
+    <string name="create_task">Crear tarefa</string>
+    <string name="close">Pechar</string>
+    <string name="add_task">Engadir tarefa</string>
+    <string name="onboard1">Se estabas buscando un pouquiño de axuda para que os teus cultivos medren máis sanos e fortes, temos unha boa nova: acabas de atopar a mellor solución.\n\nDesliza e contámosche por que.</string>
+    <string name="onboard2_title">Tarefas intelixentes</string>
+    <string name="onboard2_desc">Esta app vaiche recordar cando regar, podar, fertilizar ou colleitar os teus cultivos. Só tes que dicirlle que vas plantar e ela encargarase de todo.</string>
+    <string name="onboard3_title">Cultivos organizados</string>
+    <string name="onboard3_desc">Cada cultivo da túa horta terá as suas tarefas, e cada día que teñas que facer algo na túa horta recibirás un aviso. Teralo todo baixo control.</string>
+    <string name="skip">Saltar</string>
+    <string name="letsgo">Vamos alá!</string>
+    <string name="onboard4_title">Todo listo?</string>
+    <string name="onboard4_desc">Se ti estás preparado/a, nós tamén.</string>
+    <string name="confirm_delete_title">Estás seguro de que queres borrar este cultivo?</string>
+    <string name="confirm_delete_message">Non poderás recuperar as tarefas asociadas.</string>
+    <string name="cancel">Cancelar</string>
+    <string name="signin_google">Iniciar sesión con Google</string>
+    <string name="error_password">Debe tener mínimo 8 caracteres, 1 maiúscula e 1 número</string>
+    <string name="confirm_password">Confirmar contrasinal</string>
+    <string name="password_unmatch">Os contrasinais non coinciden</string>
 </resources>

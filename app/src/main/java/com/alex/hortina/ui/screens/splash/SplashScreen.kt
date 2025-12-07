@@ -9,9 +9,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.alex.hortina.data.local.UserPreferencesDataStore
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.delay
+import com.alex.hortina.R
 
 @Composable
 fun SplashScreen(navController: NavHostController) {
@@ -45,7 +49,47 @@ fun SplashScreen(navController: NavHostController) {
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
+    Scaffold { padding ->
+        Box(
+            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+        ) {
+
+            Surface(
+                modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.primary
+            ) {}
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_hortina_foreground),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(96.dp)
+                )
+
+                Spacer(modifier = Modifier.height(26.dp))
+
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+
+            Text(
+                text = "v 1.0",
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 24.dp)
+            )
+        }
+
+
     }
+
 }

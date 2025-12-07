@@ -1,9 +1,11 @@
 package com.alex.hortina.data.remote.api
 
+import com.alex.hortina.data.remote.dto.CrearTareaRequest
 import com.alex.hortina.data.remote.dto.CultivoDetalleDto
 import retrofit2.http.GET
 import retrofit2.http.Path
 import com.alex.hortina.data.remote.dto.CultivoDto
+import com.alex.hortina.data.remote.dto.GoogleLoginRequest
 import com.alex.hortina.data.remote.dto.LoginRequest
 import com.alex.hortina.data.remote.dto.PlantProfileDto
 import com.alex.hortina.data.remote.dto.RegistroRequest
@@ -27,7 +29,6 @@ interface HortinaApiService {
 
     @GET("api/cultivos/{id}")
     suspend fun getCultivoById(@Path("id") id: Int): CultivoDto
-
 
     @GET("api/cultivos/{id}/detalle")
     suspend fun getCultivoDetalle(@Path("id") id: Int): CultivoDetalleDto
@@ -56,6 +57,9 @@ interface HortinaApiService {
     @POST("api/auth/login")
     suspend fun login(@Body req: LoginRequest): TokenResponse
 
+    @POST("api/auth/google")
+    suspend fun loginWithGoogle(@Body req: GoogleLoginRequest): TokenResponse
+
     @POST("api/auth/refresh")
     suspend fun refreshToken(@Body refreshToken: String): TokenResponse
 
@@ -64,6 +68,9 @@ interface HortinaApiService {
 
     @POST("api/cultivos")
     suspend fun createCultivo(@Body dto: CultivoDto): CultivoDto
+
+    @POST("api/tareas")
+    suspend fun crearTarea(@Body req: CrearTareaRequest): TareaDto
 
     @PUT("api/cultivos/{id}")
     suspend fun updateCultivo(@Path("id") id: Int, @Body cultivo: CultivoDto): CultivoDto

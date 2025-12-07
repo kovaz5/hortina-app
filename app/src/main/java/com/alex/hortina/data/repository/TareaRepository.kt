@@ -2,12 +2,17 @@ package com.alex.hortina.data.repository
 
 import com.alex.hortina.data.remote.api.HortinaApiService
 import com.alex.hortina.data.remote.api.RetrofitClient
+import com.alex.hortina.data.remote.dto.CrearTareaRequest
 import com.alex.hortina.data.remote.dto.TareaDto
 
 class TareaRepository {
 
     private val api = RetrofitClient.instance.create(HortinaApiService::class.java)
     private val translator = TranslationRepository()
+
+    suspend fun crearTarea(req: CrearTareaRequest): TareaDto {
+        return api.crearTarea(req)
+    }
 
     suspend fun getTareas(uiLang: String = "ES"): List<TareaDto> {
         val list = api.getTareas()

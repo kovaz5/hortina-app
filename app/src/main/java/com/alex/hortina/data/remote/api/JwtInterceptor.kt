@@ -32,7 +32,7 @@ class JwtInterceptor(
         }
 
         val refresh = runBlocking { dataStore.getRefreshToken() }
-        if (refresh == null) return response // nada que refrescar
+        if (refresh == null) return response
 
         val refreshBody = refresh.toRequestBody("text/plain".toMediaType())
 

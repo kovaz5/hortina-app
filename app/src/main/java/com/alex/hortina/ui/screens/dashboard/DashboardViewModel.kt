@@ -45,16 +45,41 @@ class DashboardViewModel(
 
     fun loadDashboardData() {
         _uiState.value = DashboardUiState.Loading
+
         viewModelScope.launch {
             try {
                 val lang = dataStore.getLanguage()?.uppercase() ?: "ES"
+
                 val usuario = userRepository.getProfile()
-                val cultivos = cultivoRepository.getCultivos(lang)
-                val tareas = tareaRepository.getTareas(lang)
+                val cultivosRaw = cultivoRepository.getCultivos()
+                val tareasRaw = tareaRepository.getTareas()
+
+                val translator = com.alex.hortina.data.repository.TranslationRepository()
+
+                val cultivos = cultivosRaw.map { c ->
+                    c.copy(
+                        nombre = c.nombre?.let { translator.translateAuto(it, lang) })
+                }
+
+                val tareas = tareasRaw.map { t ->
+                    t.copy(
+                        nombre_tarea = t.nombre_tarea?.let {
+                            translator.translateAuto(
+                                it,
+                                lang
+                            )
+                        },
+                        descripcion = t.descripcion?.let { translator.translateAuto(it, lang) },
+                        tipo_origen = t.tipo_origen?.let { translator.translateAuto(it, lang) },
+                        cultivo = t.cultivo?.copy(
+                            nombre = t.cultivo.nombre?.let { translator.translateAuto(it, lang) },
+                            tipo = t.cultivo.tipo?.let { translator.translateAuto(it, lang) }))
+                }
+
                 val pendientes = tareas.count { it.completada != true }
                 val completadas = tareas.count { it.completada == true }
                 val tareasProximas =
-                    tareas.filter { it.completada == false }.sortedBy { it.fechaSugerida }.take(3)
+                    tareas.filter { it.completada != true }.sortedBy { it.fechaSugerida }.take(3)
 
                 val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
 
@@ -66,11 +91,14 @@ class DashboardViewModel(
                     tareasProximas = tareasProximas,
                     ultimaActualizacion = fecha
                 )
+
             } catch (e: Exception) {
-                _uiState.value = DashboardUiState.Error(e.message ?: "Error desconocido")
+                _uiState.value =
+                    DashboardUiState.Error(e.message ?: "Error desconocido en dashboard")
             }
         }
     }
+
 
     fun refresh() = loadDashboardData()
 }

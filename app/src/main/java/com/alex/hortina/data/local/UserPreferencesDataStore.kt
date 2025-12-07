@@ -21,6 +21,7 @@ class UserPreferencesDataStore(private val context: Context) {
         private val ACCESS_TOKEN = stringPreferencesKey("access_token")
         private val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
         private val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
+        private val DARK_MODE = booleanPreferencesKey("dark_mode")
 
     }
 
@@ -64,7 +65,13 @@ class UserPreferencesDataStore(private val context: Context) {
     }
 
     suspend fun clearUser() {
-        context.dataStore.edit { it.clear() }
+        context.dataStore.edit { prefs ->
+            prefs.remove(USER_ID)
+            prefs.remove(USER_NAME)
+            prefs.remove(USER_EMAIL)
+            prefs.remove(ACCESS_TOKEN)
+            prefs.remove(REFRESH_TOKEN)
+        }
     }
 
     suspend fun saveLanguage(language: String) {
@@ -82,13 +89,37 @@ class UserPreferencesDataStore(private val context: Context) {
         prefs[NOTIFICATIONS_ENABLED] != false
     }
 
-
     suspend fun setNotificationsEnabled(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[NOTIFICATIONS_ENABLED] = enabled
         }
     }
 
+    val darkModeFlow: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[DARK_MODE] ?: false
+    }
+
+    suspend fun setDarkMode(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[DARK_MODE] = enabled
+        }
+    }
+
+    private fun onboardingKeyForUser(userId: String) =
+        booleanPreferencesKey("onboarding_seen_user_$userId")
+
+
+    suspend fun setHasSeenOnboarding(userId: String, value: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[onboardingKeyForUser(userId)] = value
+        }
+    }
+
+    suspend fun hasSeenOnboarding(userId: String): Boolean {
+        return context.dataStore.data.map { prefs ->
+            prefs[onboardingKeyForUser(userId)] ?: false
+        }.first()
+    }
 
 }
 

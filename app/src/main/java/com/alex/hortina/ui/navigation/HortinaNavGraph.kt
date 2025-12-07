@@ -1,5 +1,6 @@
 package com.alex.hortina.ui.navigation
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
@@ -24,13 +25,16 @@ import com.alex.hortina.ui.screens.cultivos.CultivoFormScreen
 import com.alex.hortina.ui.screens.cultivos.CultivosScreen
 import com.alex.hortina.ui.screens.dashboard.DashboardScreen
 import com.alex.hortina.ui.screens.login.LoginScreen
+import com.alex.hortina.ui.screens.onboarding.OnboardingScreen
 import com.alex.hortina.ui.screens.perfil.PerfilScreen
 import com.alex.hortina.ui.screens.perfil.PerfilViewModel
 import com.alex.hortina.ui.screens.registro.RegistroScreen
 import com.alex.hortina.ui.screens.splash.SplashScreen
+import com.alex.hortina.ui.screens.tareas.CrearTareaScreen
 import com.alex.hortina.ui.screens.tareas.TareasScreen
 import kotlinx.coroutines.launch
 
+@SuppressLint("UnrememberedGetBackStackEntry")
 @Composable
 fun HortinaNavGraph(navController: NavHostController, startDestination: String = "splash") {
 
@@ -56,9 +60,12 @@ fun HortinaNavGraph(navController: NavHostController, startDestination: String =
             }
         }
 
-        composable("cultivos") {
+        composable("cultivos") { backStackEntry ->
+            val parentEntry = remember { navController.getBackStackEntry("cultivos") }
             ScreenWithScaffold(navController) {
-                CultivosScreen(navController)
+                LocalViewModelStoreOwnerProvider(parentEntry) {
+                    CultivosScreen(navController)
+                }
             }
         }
 
@@ -68,23 +75,33 @@ fun HortinaNavGraph(navController: NavHostController, startDestination: String =
         ) { backStackEntry ->
             val id = backStackEntry.arguments?.getInt("cultivoId") ?: 0
             ScreenWithScaffold(navController) {
-                CultivoDetalleScreen(cultivoId = id)
+                CultivoDetalleScreen(
+                    cultivoId = id, navController = navController
+                )
             }
         }
 
-        composable("cultivo_form") {
+        composable("cultivo_form") { backStackEntry ->
+            val parentEntry = remember { navController.getBackStackEntry("cultivos") }
             ScreenWithScaffold(navController) {
-                CultivoFormScreen(navController)
+                LocalViewModelStoreOwnerProvider(parentEntry) {
+                    CultivoFormScreen(navController)
+                }
             }
         }
 
         composable(
-            route = "cultivo_editar/{cultivoId}",
+            "cultivo_editar/{cultivoId}",
             arguments = listOf(navArgument("cultivoId") { type = NavType.IntType })
         ) { backStackEntry ->
+
+            val parentEntry = remember { navController.getBackStackEntry("cultivos") }
             val cultivoId = backStackEntry.arguments?.getInt("cultivoId")
+
             ScreenWithScaffold(navController) {
-                CultivoFormScreen(navController, cultivoId)
+                LocalViewModelStoreOwnerProvider(parentEntry) {
+                    CultivoFormScreen(navController, cultivoId)
+                }
             }
         }
 
@@ -110,9 +127,32 @@ fun HortinaNavGraph(navController: NavHostController, startDestination: String =
                     })
             }
         }
+
+        composable("onboarding") {
+            val context = LocalContext.current
+            val dataStore = remember { UserPreferencesDataStore(context) }
+
+            OnboardingScreen(
+                navController = navController,
+                dataStore = dataStore
+            )
+        }
+
+
+        composable(
+            route = "tarea_crear/{cultivoId}",
+            arguments = listOf(navArgument("cultivoId") { type = NavType.IntType })
+        ) { backStackEntry ->
+
+            val cultivoId = backStackEntry.arguments!!.getInt("cultivoId")
+
+            ScreenWithScaffold(navController) {
+                CrearTareaScreen(cultivoId, navController)
+            }
+        }
+
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -139,7 +179,6 @@ internal fun currentRoute(navController: NavHostController): String? {
     return navBackStackEntry?.destination?.route
 }
 
-
 @Composable
 private fun rememberPerfilViewModel(dataStore: UserPreferencesDataStore): PerfilViewModel {
     return viewModel(factory = object : ViewModelProvider.Factory {
@@ -147,4 +186,19 @@ private fun rememberPerfilViewModel(dataStore: UserPreferencesDataStore): Perfil
             return PerfilViewModel(dataStore) as T
         }
     })
+}
+
+@Composable
+fun LocalViewModelStoreOwnerProvider(
+    owner: androidx.lifecycle.ViewModelStoreOwner, content: @Composable () -> Unit
+) {
+    val provider = androidx.compose.runtime.staticCompositionLocalOf {
+        owner
+    }
+
+    androidx.compose.runtime.CompositionLocalProvider(
+        androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner provides owner
+    ) {
+        content()
+    }
 }

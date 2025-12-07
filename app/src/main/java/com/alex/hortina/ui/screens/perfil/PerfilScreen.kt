@@ -22,6 +22,8 @@ import com.alex.hortina.R
 import kotlinx.coroutines.launch
 import android.content.pm.PackageManager
 import android.provider.Settings
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.core.content.ContextCompat
 
 
@@ -43,7 +45,6 @@ fun PerfilScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
-                // Recalcular permiso cuando volvemos desde Ajustes
                 systemPermissionGranted = hasNotificationPermission(context)
             }
         }
@@ -65,6 +66,10 @@ fun PerfilScreen(
     val shouldRecreate by viewModel.shouldRecreate.collectAsState()
     val notificationsEnabledUI = uiState.notificacionesEnabled && systemPermissionGranted
 
+    val msgNotis = stringResource(R.string.should_activate_nots)
+    val msgAbrir = stringResource(R.string.open)
+    val notisOn = stringResource(R.string.notis_enabled)
+    val notisOff = stringResource(R.string.notis_disabled)
 
     LaunchedEffect(shouldRecreate) {
         if (shouldRecreate == true) {
@@ -81,11 +86,16 @@ fun PerfilScreen(
         return
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+    Scaffold(topBar = {
+        TopAppBar(
+            title = { Text(stringResource(R.string.your_profile)) },
+            windowInsets = WindowInsets(0, 0, 0, 0)
+        )
+    }, snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Column(
             Modifier
                 .fillMaxSize()
+                .padding(padding)
                 .padding(24.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -132,6 +142,34 @@ fun PerfilScreen(
             Spacer(Modifier.height(32.dp))
 
             Text(
+                text = stringResource(R.string.dark_mode),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = if (uiState.darkMode)
+                        stringResource(R.string.enabledDarkMode)
+                    else
+                        stringResource(R.string.disabledDarkMode),
+                    modifier = Modifier.weight(1f)
+                )
+
+                Switch(
+                    checked = uiState.darkMode,
+                    onCheckedChange = { enabled ->
+                        viewModel.cambiarDarkMode(enabled)
+                    }
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            Text(
                 text = stringResource(R.string.notis),
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -141,8 +179,9 @@ fun PerfilScreen(
                 verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = if (notificationsEnabledUI) "Activadas" else "Desactivadas",
-                    modifier = Modifier.weight(1f)
+                    text = if (notificationsEnabledUI) stringResource(R.string.enabled) else stringResource(
+                        R.string.disabled
+                    ), modifier = Modifier.weight(1f)
                 )
 
                 Switch(
@@ -151,8 +190,7 @@ fun PerfilScreen(
                         if (enabled && !systemPermissionGranted) {
                             coroutineScope.launch {
                                 val result = snackbarHostState.showSnackbar(
-                                    message = "Debes activar las notificaciones en Ajustes.",
-                                    actionLabel = "Abrir"
+                                    message = msgNotis, actionLabel = msgAbrir
                                 )
 
                                 if (result == SnackbarResult.ActionPerformed) {
@@ -171,17 +209,19 @@ fun PerfilScreen(
 
                         coroutineScope.launch {
                             snackbarHostState.showSnackbar(
-                                if (enabled) "Notificaciones activadas" else "Notificaciones desactivadas"
+                                if (enabled) notisOn else notisOff
                             )
                         }
                     })
 
             }
 
+            Spacer(Modifier.height(16.dp))
+
             OutlinedButton(
                 onClick = onLogout, modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Cerrar sesión")
+                Text(stringResource(R.string.logout))
             }
         }
     }
@@ -197,6 +237,8 @@ fun IdiomaSelector(
         "es" to "Español", "gl" to "Galego", "en" to "English"
     )
 
+    val msgElige = stringResource(R.string.choose_language)
+
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
@@ -206,7 +248,7 @@ fun IdiomaSelector(
             onValueChange = {},
             readOnly = true,
             modifier = Modifier.menuAnchor(),
-            label = { Text("Elige idioma") })
+            label = { Text(msgElige) })
 
         ExposedDropdownMenu(
             expanded = expanded, onDismissRequest = { expanded = false }) {

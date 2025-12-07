@@ -2,8 +2,10 @@ package com.alex.hortina.ui.screens.tareas
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alex.hortina.data.local.UserPreferencesDataStore
 import com.alex.hortina.data.remote.dto.TareaDto
 import com.alex.hortina.data.repository.TareaRepository
+import com.alex.hortina.data.repository.TranslationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -22,8 +24,10 @@ sealed class TareaUiState {
 }
 
 class TareaViewModel(
-    private val repository: TareaRepository = TareaRepository()
+    private val repository: TareaRepository = TareaRepository(),
+    private val dataStore: UserPreferencesDataStore
 ) : ViewModel() {
+
 
     private val _uiState = MutableStateFlow<TareaUiState>(TareaUiState.Loading)
     val uiState: StateFlow<TareaUiState> = _uiState
@@ -36,10 +40,27 @@ class TareaViewModel(
         _uiState.value = TareaUiState.Loading
 
         viewModelScope.launch {
-            try {
-                val tareas = repository.getTareas()
 
-                val tareasConFecha = tareas.mapNotNull { tarea ->
+            try {
+                val lang = dataStore.getLanguage()?.uppercase() ?: "ES"
+                val translator = TranslationRepository()
+                val tareasRaw = repository.getTareas()
+
+                val tareasTrad = tareasRaw.map { t ->
+                    t.copy(
+                        nombre_tarea = t.nombre_tarea?.let {
+                        translator.translateAuto(
+                            it, lang
+                        )
+                    },
+                        descripcion = t.descripcion?.let { translator.translateAuto(it, lang) },
+                        tipo_origen = t.tipo_origen?.let { translator.translateAuto(it, lang) },
+                        cultivo = t.cultivo?.copy(
+                            nombre = t.cultivo.nombre?.let { translator.translateAuto(it, lang) })
+                    )
+                }
+
+                val tareasConFecha = tareasTrad.mapNotNull { tarea ->
                     val fecha = tarea.fechaSugerida?.let { LocalDate.parse(it) }
                     if (fecha != null) fecha to tarea else null
                 }
@@ -48,10 +69,8 @@ class TareaViewModel(
                     keySelector = { it.first },
                     valueTransform = { it.second })
 
-                val hoy = LocalDate.now()
-
                 _uiState.value = TareaUiState.Success(
-                    tareasPorDia = tareasPorDia, fechaSeleccionada = hoy
+                    tareasPorDia = tareasPorDia, fechaSeleccionada = LocalDate.now()
                 )
 
             } catch (e: Exception) {
@@ -59,6 +78,7 @@ class TareaViewModel(
             }
         }
     }
+
 
     fun seleccionarDia(dia: LocalDate) {
         val state = _uiState.value

@@ -1,20 +1,19 @@
 package com.alex.hortina.ui.screens.tareas
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -29,12 +28,34 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.alex.hortina.data.local.UserPreferencesDataStore
+import com.alex.hortina.data.repository.TareaRepository
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TareasScreen(navController: NavController) {
 
-    val viewModel: TareaViewModel = viewModel()
+    val context = LocalContext.current
+    val dataStore = remember { UserPreferencesDataStore(context) }
+
+    val viewModel: TareaViewModel =
+        viewModel(factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return TareaViewModel(
+                    repository = TareaRepository(),
+                    dataStore = dataStore
+                ) as T
+            }
+        })
+
     val uiState by viewModel.uiState.collectAsState()
     val locale = LocalConfiguration.current.locales[0]
 
@@ -55,6 +76,8 @@ fun TareasScreen(navController: NavController) {
             val tareasPorDia = data.tareasPorDia
             val fechaSeleccionada = data.fechaSeleccionada
             var mesActual by remember { mutableStateOf(YearMonth.from(fechaSeleccionada)) }
+            val noCropsTexto = stringResource(R.string.no_crops)
+            val tasksForTitle = stringResource(R.string.tasks_for)
 
             Scaffold(
                 topBar = {
@@ -68,48 +91,72 @@ fun TareasScreen(navController: NavController) {
                         })
                 }) { padding ->
 
-                Column(
-                    Modifier
+                val tareasDelDia =
+                    tareasPorDia[fechaSeleccionada]?.sortedBy { it.cultivo?.nombre ?: "" }
+                        ?: emptyList()
+
+                val tareasAgrupadas =
+                    tareasDelDia.groupBy { it.cultivo?.nombre ?: noCropsTexto }.toSortedMap()
+
+                LazyColumn(
+                    modifier = Modifier
                         .padding(padding)
                         .padding(16.dp)
                         .fillMaxSize()
                 ) {
 
-                    MonthlyCalendar(
-                        month = mesActual,
-                        selectedDate = fechaSeleccionada,
-                        tasksPerDay = tareasPorDia,
-                        locale = locale,
-                        onDayClick = { viewModel.seleccionarDia(it) },
-                        onPreviousMonth = { mesActual = mesActual.minusMonths(1) },
-                        onNextMonth = { mesActual = mesActual.plusMonths(1) })
+                    item {
+                        MonthlyCalendar(
+                            month = mesActual,
+                            selectedDate = fechaSeleccionada,
+                            tasksPerDay = tareasPorDia,
+                            locale = locale,
+                            onDayClick = { viewModel.seleccionarDia(it) },
+                            onPreviousMonth = { mesActual = mesActual.minusMonths(1) },
+                            onNextMonth = { mesActual = mesActual.plusMonths(1) })
 
-                    Spacer(Modifier.height(20.dp))
+                        Spacer(Modifier.height(20.dp))
 
-                    // ---- Lista de tareas del día ----
-                    val tareasDelDia = tareasPorDia[fechaSeleccionada] ?: emptyList()
+                        val fechaFormateada = fechaSeleccionada.format(
+                            DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault())
+                        )
 
-                    Text(
-                        stringResource(R.string.tasks_for) + " ${
-                            fechaSeleccionada.let {
-                                LocalDate.parse(
-                                    it.toString()
-                                ).format(
-                                    DateTimeFormatter.ofPattern(
-                                        "dd/MM/yyyy", Locale.getDefault()
+                        Text(
+                            "$tasksForTitle $fechaFormateada",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+
+                        Spacer(Modifier.height(8.dp))
+                    }
+
+                    if (tareasDelDia.isEmpty()) {
+                        item {
+                            Text(stringResource(R.string.no_tasks_for_day))
+                        }
+                    } else {
+
+                        tareasAgrupadas.forEach { (cultivo, tareas) ->
+
+                            stickyHeader {
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant
+                                ) {
+                                    Text(
+                                        text = cultivo,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.padding(8.dp)
                                     )
-                                )
+                                }
                             }
-                        }", style = MaterialTheme.typography.titleMedium)
 
-                    Spacer(Modifier.height(8.dp))
-
-                    LazyColumn {
-                        if (tareasDelDia.isEmpty()) {
-                            item { Text(stringResource(R.string.no_tasks_for_day)) }
-                        } else {
-                            items(tareasDelDia) { tarea ->
-                                TareaCard(tarea)
+                            items(tareas) { tarea ->
+                                TareaCard(tarea, onClick = {
+                                    cultivoId -> navController.navigate("cultivo_detalle/$cultivoId")
+                                })
                                 Spacer(Modifier.height(8.dp))
                             }
                         }
@@ -121,25 +168,66 @@ fun TareasScreen(navController: NavController) {
 }
 
 @Composable
-fun TareaCard(tarea: TareaDto) {
-    Card(Modifier.fillMaxWidth()) {
+fun TareaCard(tarea: TareaDto, onClick: (Int) -> Unit) {
+
+    val cultivoId = tarea.cultivo?.idCultivo
+    val tipo = when (tarea.tipo_origen?.lowercase()) {
+        "automática_api" -> "🔁 " + stringResource(R.string.automatic_task)
+        "manual" -> "🛠 " + stringResource(R.string.manual_task)
+        else -> ""
+    }
+
+    val esPasada = tarea.fechaSugerida?.let {
+        try {
+            LocalDate.parse(it).isBefore(LocalDate.now())
+        } catch (_: Exception) {
+            false
+        }
+    } ?: false
+
+    val decoration = if (esPasada) TextDecoration.LineThrough else TextDecoration.None
+    val textColor = if (esPasada) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+    else MaterialTheme.colorScheme.onSurface
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                cultivoId?.let { onClick(it) }
+            }, colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
         Column(Modifier.padding(12.dp)) {
+
             Text(
-                tarea.nombre_tarea
-                    ?: (stringResource(R.string.unnamed) + " - " + tarea.cultivo?.nombre),
-                style = MaterialTheme.typography.titleMedium
+                tarea.nombre_tarea ?: stringResource(R.string.unnamed),
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    textDecoration = decoration, color = textColor
+                )
             )
-            tarea.descripcion?.let { Text(it) }
-            Text(
-                stringResource(R.string.date) + ": ${
-                    tarea.fechaSugerida.let {
-                        LocalDate.parse(it)
-                            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault()))
-                    }
-                }")
+
+            tarea.descripcion?.let { desc ->
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    desc, style = MaterialTheme.typography.bodyMedium.copy(
+                        textDecoration = decoration, color = textColor.copy(alpha = 0.8f)
+                    )
+                )
+            }
+
+            if (tipo.isNotEmpty()) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = tipo,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
+            }
         }
     }
 }
+
 
 @Composable
 fun MonthlyCalendar(
@@ -151,22 +239,21 @@ fun MonthlyCalendar(
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit
 ) {
+
     Column {
 
-        // Mes traducido correctamente
         val formattedMonth = remember(month, locale) {
             month.atDay(1).format(DateTimeFormatter.ofPattern("LLLL yyyy", locale))
                 .replaceFirstChar { it.titlecase(locale) }
         }
 
-        // Header
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onPreviousMonth) {
-                Icon(Icons.Default.KeyboardArrowLeft, contentDescription = null)
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null)
             }
 
             Text(
@@ -174,14 +261,12 @@ fun MonthlyCalendar(
             )
 
             IconButton(onClick = onNextMonth) {
-                Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
             }
         }
 
         Spacer(Modifier.height(8.dp))
 
-
-        // Días de la semana traducidos dinámicamente
         val dayNames = remember(locale) {
             listOf(
                 DayOfWeek.MONDAY,
@@ -192,8 +277,7 @@ fun MonthlyCalendar(
                 DayOfWeek.SATURDAY,
                 DayOfWeek.SUNDAY
             ).map {
-                it.getDisplayName(TextStyle.SHORT, locale)
-                    .replace(".", "") // algunas locales añaden punto
+                it.getDisplayName(TextStyle.SHORT, locale).replace(".", "")
                     .replaceFirstChar { char -> char.titlecase(locale) }
             }
         }
@@ -211,12 +295,15 @@ fun MonthlyCalendar(
 
         Spacer(Modifier.height(4.dp))
 
+
         val firstOfMonth = month.atDay(1)
         val lastOfMonth = month.atEndOfMonth()
 
         val startOffset = (firstOfMonth.dayOfWeek.value + 6) % 7
         val totalCells = startOffset + lastOfMonth.lengthOfMonth()
         val rows = (totalCells + 6) / 7
+
+        val today = LocalDate.now()
 
         Column {
             repeat(rows) { row ->
@@ -239,9 +326,17 @@ fun MonthlyCalendar(
                             val isSelected = date == selectedDate
 
                             val background = when {
-                                isSelected -> MaterialTheme.colorScheme.primaryContainer
-                                hasTasks -> MaterialTheme.colorScheme.secondary
+                                date == today -> MaterialTheme.colorScheme.tertiaryContainer
+                                hasTasks && date.isBefore(today) -> MaterialTheme.colorScheme.secondaryContainer
+                                hasTasks && date.isAfter(today) -> MaterialTheme.colorScheme.primaryContainer
                                 else -> MaterialTheme.colorScheme.surfaceVariant
+                            }
+
+                            val borderWidth = if (isSelected || date == today) 2.dp else 0.dp
+                            val borderColor = when {
+                                isSelected -> MaterialTheme.colorScheme.primary
+                                date == today -> MaterialTheme.colorScheme.tertiary
+                                else -> Color.Transparent
                             }
 
                             Box(
@@ -251,6 +346,11 @@ fun MonthlyCalendar(
                                     .aspectRatio(1f)
                                     .clip(RoundedCornerShape(8.dp))
                                     .background(background)
+                                    .border(
+                                        width = borderWidth,
+                                        color = borderColor,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
                                     .clickable { onDayClick(date) },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -263,6 +363,3 @@ fun MonthlyCalendar(
         }
     }
 }
-
-
-

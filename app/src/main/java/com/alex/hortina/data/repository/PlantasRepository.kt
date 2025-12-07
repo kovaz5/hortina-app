@@ -10,19 +10,28 @@ class PlantasRepository(
 ) {
 
     suspend fun searchPlants(query: String, uiLang: String = "ES"): List<PlantProfileDto> {
+
         val translatedQuery = translator.translate(query, uiLang, "EN")
 
         val results = api.searchPlants(translatedQuery)
 
-        return results.map { plant ->
-            plant.copy(
-                commonName = translator.translate(plant.commonName ?: "", "EN", uiLang),
-                scientificName = plant.scientificName,
-                watering = translator.translate(plant.watering ?: "", "EN", uiLang),
-                sunlight = translator.translate(plant.sunlight ?: "", "EN", uiLang)
-            )
-        }
+        return results
     }
+
+    suspend fun translatePlantForDisplay(
+        plant: PlantProfileDto, targetLang: String
+    ): PlantProfileDto {
+
+        return plant.copy(
+            commonName = translator.translateAuto(plant.commonName ?: "", targetLang),
+            watering = translator.translateAuto(plant.watering ?: "", targetLang),
+            sunlight = translator.translateAuto(plant.sunlight ?: "", targetLang),
+            careLevel = translator.translateAuto(plant.careLevel ?: "", targetLang),
+            lifeCycle = translator.translateAuto(plant.lifeCycle ?: "", targetLang),
+            edibleParts = translator.translateAuto(plant.edibleParts ?: "", targetLang)
+        )
+    }
+
 
     suspend fun getPlantById(id: Int): PlantProfileDto {
         return api.getPlantById(id)

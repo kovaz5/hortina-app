@@ -30,32 +30,35 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
-            HortinaAppTheme {
-                val navController = rememberNavController()
+            val context = LocalContext.current
+            val dataStore = remember { UserPreferencesDataStore(context) }
+            val darkModeEnabled by dataStore.darkModeFlow.collectAsState(initial = false)
+            val notificationsEnabled by dataStore.notificationsEnabledFlow.collectAsState(
+                initial = true
+            )
 
-                LaunchedEffect(Unit) {
-                    val target = intent.getStringExtra("navigateTo")
-                    if (target == "tareas") {
-                        navController.navigate("tareas")
-                    }
+            val navController = rememberNavController()
+
+            LaunchedEffect(Unit) {
+                val target = intent.getStringExtra("navigateTo")
+                if (target == "tareas") {
+                    navController.navigate("tareas")
                 }
+            }
 
-                val context = LocalContext.current
-                val dataStore = remember { UserPreferencesDataStore(context) }
-
-                val notificationsEnabled by dataStore.notificationsEnabledFlow.collectAsState(
-                        initial = true
-                    )
-
-                LaunchedEffect(notificationsEnabled) {
-                    if (notificationsEnabled) {
-                        scheduleDailyWorker()
-                    } else {
-                        cancelDailyWorker()
-                    }
+            LaunchedEffect(notificationsEnabled) {
+                if (notificationsEnabled) {
+                    scheduleDailyWorker()
+                } else {
+                    cancelDailyWorker()
                 }
+            }
 
-                HortinaNavGraph(navController = navController, startDestination = "splash")
+            HortinaAppTheme(darkTheme = darkModeEnabled) {
+                HortinaNavGraph(
+                    navController = navController,
+                    startDestination = "splash"
+                )
             }
         }
     }
@@ -80,9 +83,9 @@ class MainActivity : ComponentActivity() {
 
         val request =
             PeriodicWorkRequestBuilder<DailyTaskWorker>(24, TimeUnit.HOURS).setInitialDelay(
-                    delay,
-                    TimeUnit.MILLISECONDS
-                ).build()
+                delay,
+                TimeUnit.MILLISECONDS
+            ).build()
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "daily_task_worker", ExistingPeriodicWorkPolicy.REPLACE, request
